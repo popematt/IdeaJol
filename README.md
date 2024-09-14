@@ -62,7 +62,33 @@ So you can see the full size including inner objects.
 The plugin provides an inspection to see most big classes. It's enabled by default.
 You can find the inspection by path `Java | Memory | JOL: Class has too big memory footprint` to configure or disable it. 
 
-Please rank the [Plugin](https://plugins.jetbrains.com/plugin/10953-java-object-layout) to make it more searchable.
+Please leave a feedback for the [plugin in marketplace](https://plugins.jetbrains.com/plugin/10953-java-object-layout).
+
+
+## Tutorials
+* [Java Objects Inside Out](https://shipilev.net/jvm/objects-inside-out/) from the JOL author.
+* Видео: [Алексей Шипилёв — Java-объекты наизнанку](https://www.youtube.com/watch?v=q2wtSR3kD_I)
+* Video: [Java Object Layout | Ordinary Object Pointer | Object Header | CompressedOops | OpenJdk HotSpot JVM](https://www.youtube.com/watch?v=MK4rcxpwiuc)
+* Video: [JVM Benchmarking with Aleksey Shipilev](https://www.youtube.com/watch?v=x3Vlze1mUj4)
+
+
+## What is layouter
+
+Java VM and it's version.
+
+HotSpot is from OpenJDK. The Lilliput in development.
+The Raw is a layout by itself without real gaps and aligns.
+
+CPU word size 32 or 64 bits i.e. size of a pointer.
+
+COOPS is compressed references i.e. a trick to store 64 bits pointer in only 32 bits but all fields needs to be aligned.
+
+Align is typically 8-byte but for a very large RAM may need to be 16-byte.
+
+CCPS is Compressed Classes in an object header i.e. 4 bytes instead of 8.
+
+You may find most typical layouters here https://github.com/openjdk/jol/blob/master/jol-cli/src/main/java/org/openjdk/jol/operations/EstimatedModels.java
+
 
 ## Related projects
 
@@ -72,3 +98,4 @@ Heap dump `*.hprof` files analysers:
  * Eclipse [Memory Analyzer (MAT)](https://www.eclipse.org/mat/)
  * [VisualVM](https://visualvm.github.io/) can also monitor heap in real time. Based on NetBeans
  * [Java Mission Control](https://github.com/openjdk/jmc)
+ * [JMH Micro benchmarks tool](https://github.com/openjdk/jmh) and the [Intellij JMH plugin](https://github.com/artyushov/idea-jmh-plugin)
