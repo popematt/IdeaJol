@@ -23,6 +23,7 @@ import org.openjdk.jol.layouters.Layouter;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import java.awt.*;
@@ -61,15 +62,83 @@ public class JolView extends SimpleToolWindowPanel implements Disposable {
     private void setupUI() {
         jolForm.tblObjectLayout.getEmptyText().setText("Select a class then press Code / Show Object Layout");
         jolForm.tblObjectLayout.setSelectionMode(SINGLE_SELECTION);
-        jolForm.tblObjectLayout.getSelectionModel().addListSelectionListener(this::navigateToFieldInEditor);
+        jolForm.tblObjectLayout.getSelectionModel().addListSelectionListener(navigateToFieldInEditor());
         jolForm.lblClassName.addMouseListener(navigateToClassInEditor());
-        jolForm.copyButton.addActionListener(this::copyObjectLayoutToClipboard);
+        jolForm.copyButton.addMouseListener(copyObjectLayoutToClipboard());
         DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>(LAYOUTERS_NAMES);
         jolForm.cmbDataModel.setModel(model);
         jolForm.cmbDataModel.setSelectedIndex(DEFAULT_LAYOUTER_INDEX);
-        jolForm.cmbDataModel.addActionListener(this::layoutOptionsActionPerformed);
+        jolForm.cmbDataModel.addActionListener(layoutOptionsActionPerformed());
         jolForm.lblDocs.addMouseListener(openDocumentation());
         setContent(jolForm.rootPanel);
+    }
+
+    @NotNull
+    private ListSelectionListener navigateToFieldInEditor() {
+        return new ListSelectionListener() {
+            @Override
+            public void valueChanged(@NotNull ListSelectionEvent e) {
+                int fieldIndex = jolForm.tblObjectLayout.getSelectionModel().getLeadSelectionIndex();
+                // first row is always object header
+                if (fieldIndex == 0) {
+                    return;
+                }
+                // on reset of model the selected index can be more than new count of rows
+                if (fieldIndex == -1 || fieldIndex > jolForm.tblObjectLayout.getModel().getRowCount() - 1) {
+                    return;
+                }
+                String className = (String) jolForm.tblObjectLayout.getModel().getValueAt(fieldIndex, 3);
+                // for padding/gap the class name is null
+                if (className == null) {
+                    return;
+                }
+                String fieldName = (String) jolForm.tblObjectLayout.getModel().getValueAt(fieldIndex, 4);
+                PsiField psiField = findFieldInHierarchy(className, fieldName);
+                if (psiField != null) {
+                    psiField.navigate(true);
+                }
+            }
+        };
+    }
+
+    @NotNull
+    private MouseAdapter navigateToClassInEditor() {
+        return new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                PsiClass psiClassElement = getPsiClass();
+                if (psiClassElement == null) {
+                    return;
+                }
+                psiClassElement.navigate(true);
+            }
+        };
+    }
+
+
+    @NotNull
+    private MouseAdapter copyObjectLayoutToClipboard() {
+        return new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent event) {
+                PsiClass psiClass = getPsiClass();
+                if (psiClass == null) {
+                    return;
+                }
+                ClassLayout classLayout = calcClassLayout(psiClass);
+                CopyPasteManager.getInstance().setContents(new StringSelection(classLayout.toPrintable()));
+            }
+        };
+    }
+
+    @NotNull
+    private ActionListener layoutOptionsActionPerformed() {
+        return new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent event) {
+                showLayoutForSelectedClass();
+            }
+        };
     }
 
     @NotNull
@@ -174,42 +243,6 @@ public class JolView extends SimpleToolWindowPanel implements Disposable {
         }
     }
 
-    @NotNull
-    private MouseAdapter navigateToClassInEditor() {
-        return new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                PsiClass psiClassElement = getPsiClass();
-                if (psiClassElement == null) {
-                    return;
-                }
-                psiClassElement.navigate(true);
-            }
-        };
-    }
-
-    private void navigateToFieldInEditor(@NotNull ListSelectionEvent e) {
-        int fieldIndex = jolForm.tblObjectLayout.getSelectionModel().getLeadSelectionIndex();
-        // first row is always object header
-        if (fieldIndex == 0) {
-            return;
-        }
-        // on reset of model the selected index can be more than new count of rows
-        if (fieldIndex == -1 || fieldIndex > jolForm.tblObjectLayout.getModel().getRowCount() - 1) {
-            return;
-        }
-        String className = (String) jolForm.tblObjectLayout.getModel().getValueAt(fieldIndex, 3);
-        // for padding/gap the class name is null
-        if (className == null) {
-            return;
-        }
-        String fieldName = (String) jolForm.tblObjectLayout.getModel().getValueAt(fieldIndex, 4);
-        PsiField psiField = findFieldInHierarchy(className, fieldName);
-        if (psiField != null) {
-            psiField.navigate(true);
-        }
-    }
-
     @Nullable
     private PsiField findFieldInHierarchy(@NotNull String className, @Nullable String fieldName) {
         if (fieldName == null) {
@@ -228,10 +261,6 @@ public class JolView extends SimpleToolWindowPanel implements Disposable {
             }
         }
         return null;
-    }
-
-    private void layoutOptionsActionPerformed(@NotNull ActionEvent e) {
-        showLayoutForSelectedClass();
     }
 
     /** Safely get a PsiClass - it can be already removed then we'll keep layout but strike out class name label */
@@ -253,15 +282,6 @@ public class JolView extends SimpleToolWindowPanel implements Disposable {
         fontAttributes.put(STRIKETHROUGH, strikethroughOn);
         Font strikethroughFont = new Font(fontAttributes);
         jolForm.lblClassName.setFont(strikethroughFont);
-    }
-
-    private void copyObjectLayoutToClipboard(@NotNull ActionEvent e) {
-        PsiClass psiClass = getPsiClass();
-        if (psiClass == null) {
-            return;
-        }
-        ClassLayout classLayout = calcClassLayout(psiClass);
-        CopyPasteManager.getInstance().setContents(new StringSelection(classLayout.toPrintable()));
     }
 
     private ClassLayout calcClassLayout(@NotNull PsiClass psiClass) {
