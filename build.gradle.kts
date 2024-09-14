@@ -1,10 +1,10 @@
 plugins {
     id("java")
-    id("org.jetbrains.intellij") version "1.17.1"
+    id("org.jetbrains.intellij") version "1.17.4"
 }
 
 group = "com.github.stokito.IdeaJol"
-version = "1.12.0"
+version = "1.13.0"
 
 repositories {
     mavenCentral()
