@@ -20,4 +20,6 @@ class JolForm {
     JPanel pnlObjectLayout;
     JBScrollPane objectLayoutScrollPane;
     JBTable tblObjectLayout;
+    JPanel pnlDocs;
+    JLabel lblDocs;
 }

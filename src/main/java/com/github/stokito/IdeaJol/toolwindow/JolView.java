@@ -28,9 +28,11 @@ import javax.swing.table.TableModel;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.font.TextAttribute;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -66,7 +68,24 @@ public class JolView extends SimpleToolWindowPanel implements Disposable {
         jolForm.cmbDataModel.setModel(model);
         jolForm.cmbDataModel.setSelectedIndex(DEFAULT_LAYOUTER_INDEX);
         jolForm.cmbDataModel.addActionListener(this::layoutOptionsActionPerformed);
+        jolForm.lblDocs.addMouseListener(openDocumentation());
         setContent(jolForm.rootPanel);
+    }
+
+    @NotNull
+    private MouseAdapter openDocumentation() {
+        return new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent event) {
+                Desktop desktop = java.awt.Desktop.getDesktop();
+                try {
+                    URI oURL = new URI(jolForm.lblDocs.getToolTipText());
+                    desktop.browse(oURL);
+                } catch (Exception e) {
+                    LOG.error("Unable to open docs link", e);
+                }
+            }
+        };
     }
 
     @Override
