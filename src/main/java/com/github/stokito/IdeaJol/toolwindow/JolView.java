@@ -78,6 +78,9 @@ public class JolView extends SimpleToolWindowPanel implements Disposable {
         return new ListSelectionListener() {
             @Override
             public void valueChanged(@NotNull ListSelectionEvent e) {
+                if (e.getValueIsAdjusting()) {
+                    return;
+                }
                 int fieldIndex = jolForm.tblObjectLayout.getSelectionModel().getLeadSelectionIndex();
                 // first row is always object header
                 if (fieldIndex == 0) {
