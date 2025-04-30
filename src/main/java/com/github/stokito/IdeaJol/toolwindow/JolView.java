@@ -193,10 +193,10 @@ public class JolView extends SimpleToolWindowPanel implements Disposable {
         TableModel model = new FieldLayoutTableModel(objectLayouts);
         jolForm.tblObjectLayout.setModel(model);
         TableColumnModel columnModel = jolForm.tblObjectLayout.getColumnModel();
-        columnModel.getColumn(0).setMinWidth(120);
+        columnModel.getColumn(0).setMinWidth(40);
         columnModel.getColumn(0).setMaxWidth(150);
 //        columnModel.getColumn(0).setResizable(false);
-        columnModel.getColumn(1).setMinWidth(90);
+        columnModel.getColumn(1).setMinWidth(40);
         columnModel.getColumn(1).setMaxWidth(120);
 //        columnModel.getColumn(1).setResizable(false);
     }
